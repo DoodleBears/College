@@ -29,12 +29,18 @@ lang: zh,en
     - this refers to the single responsibility principle.
 - utilizing —— make use of
 - segregate —— separate sb. or sth. from the group
+- scope goes up —— 
+    - when the application **scope goes up** or application faces certain design issues
+- vice-versa —— 反之亦然
 
 
 ## <span class="hui_Color">笔记</span>
 > write code that easy to maintain, understand, extend.
 
 The reason why we use SOLID.
+![](https://i.imgur.com/4uPxhD1.png)
+
+not so well-written can lead to very difficult situations when the application scope goes up or application faces **certain design issues either in production or maintenance**.
 
 ### <span class="hui_Color">S — Single responsibility principle</span>
 > every module or class should have responsibility over a single part of the functionality provided by the software.
@@ -105,7 +111,7 @@ Now we have **two classes that each has one responsibility**;
 
 For better OOP?
 
-#### easier to create extended
+#### 1. easier to create extended
 
 ```
 void CreatePost(Database db, string postMessage)
@@ -139,6 +145,11 @@ class TagPost : Post
 }
 ```
 > The evaluation of the first character ‘#’ will now be handled elsewhere (probably at a higher level) of our software, and the cool thing is, that if we want to change the way a postMessage is evaluated, we can change the code there, without affecting any of these underlying pieces of behavior.
+> 
+
+#### 2. get rid of being modified(encapsulation)
+
+> For example, spring framework has class DispatcherServlet. This class acts as front controller for String based web applications. To use this class, we are <span class="hui_Color">**not required to modify this class**</span>. All we need is to <span class="hui_Color">**pass initialization parameters and we can extend it’s functionality the way we want**</span>.
 
 ### <span class="hui_Color">L — Liskov substitution principle</span>
 
@@ -156,6 +167,7 @@ subtypes? subclass's instance?
 ![](https://i.imgur.com/tRppwBB.png)
 
 ```
+lang:C#
 class Post
 {
     void CreatePost(Database db, string postMessage)
@@ -185,7 +197,7 @@ class MentionPost : Post
 }
 ```
 
-> - Observe how the call of CreatePost() in the case of a subtype MentionPost won’t do what it is supposed to do; 
+> - Observe how the call of CreatePost() in the case of a **subtype MentionPost** won’t do what it is supposed to do; 
 > - notify the user and **override existing mention**.
 
 Since
@@ -306,6 +318,11 @@ class Post
 ```
 
 > By using dependency injection we no longer rely on the Post class to define the specific type of logger.
+ 
+#### Dependency inversion in Spring framework
+
+> In spring framework, all modules are provided as separate components which can work together by simply injected dependencies in other module.
+
 
 #### 关于耦合性 —— Dependency inversion
 
