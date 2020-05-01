@@ -37,17 +37,38 @@ lang: zh,en
 ## <span class="hui_Color">笔记</span>
 > write code that easy to maintain, understand, extend.
 
+无论是从`github`上clone下来的项目，还是`IDEA（Intelli J / Eclipse）`里面的范例工程，文件的层级结构对于以前没写过项目的我来讲是相当复杂的。
+
+但说到`maintain`管理，文件的`directory`关系想必是非常重要的。
+
+同时，在学习了 `Java` 一个学期之后，其中大量使用到的import-library， `class` 的 `inheritance` 将不同file相关联，make it easier to `extend`
+
+> 或许，function/method 之于单个文件，就如单个 `file` 之于整个project
+
 The reason why we use SOLID.
 ![](https://i.imgur.com/4uPxhD1.png)
 
-not so well-written can lead to very difficult situations when the application scope goes up or application faces **certain design issues either in production or maintenance**.
+> not so well-written code can lead to very difficult situations
 
-### <span class="hui_Color">S — Single responsibility principle</span>
+Design Pattern & Design Principle 模板&规范的主要用途应该就是make it easy to `understand` and `maintain` 在同样的规范下编写的代码，在teamwork中，不同人编写时易于理解彼此的想法，即便是经多人之手，代码的格式风格还是类似的。
+
+when the application scope goes up or application faces **certain design issues either in production or maintenance**.
+
+在大部分的软件项目中，除去代码的管理，功能上的更新作为整个开发loop中的主体，`追加新功能`是客户最主要的需求。为了以`OOP Principle`去编写程序，提高开发效率。势必会用到大量的 `polymorphism` `inheritance` 功能与功能之间的关系，如果不细致的管理，随着项目的增大，修改&更新便会变得更加复杂。
+
+> 据说在整个 `software` 的“一生”中，使用OO开发的，发布和后期维护更新的比例是：3/7。即后期维护是开销的大头。
+
+### <span class="hui_Color">S — Single responsibility principle 【各司其职】</span>
+
 > every module or class should have responsibility over a single part of the functionality provided by the software.
 
 每个module和class分管(负责)整个software中的一个单独的功能？
 
-> “Do one thing and do it well
+> 个人之于公司，class&module 之于整个 project
+
+
+
+#### Do one thing and do it well
 
 ```
 class User
@@ -67,27 +88,22 @@ class User
 }
 ```
 
-Method CreatePost() has too much responsibility, given that it can both create a new post, log an error in the database, and log an error in a local file.
-
-
+Method `CreatePost()` 具有的功能过多
+- create a new post
 ```
-class Post
-{
-    private ErrorLogger errorLogger = new ErrorLogger();
-
-    void CreatePost(Database db, string postMessage)
-    {
-        try
-        {
-            db.Add(postMessage);
-        }
-        catch (Exception ex)
-        {
-            errorLogger.log(ex.ToString())
-        }
-    }
-}
+db.Add(postMessage);
 ```
+- log an error in the database
+```
+db.LogError("An error occured: ", ex.ToString());
+```
+- log an error in a local file
+```
+File.WriteAllText("\LocalErrors.txt", ex.ToString());
+```
+
+#### 将 `method` ErrorLogger 分离出来
+
 ```
 class ErrorLogger
 {
@@ -99,7 +115,32 @@ class ErrorLogger
 }
 ```
 
-By abstracting the functionality that handles the error logging, we no longer violate the single responsibility principle.
+```
+class Post
+{
+    private ErrorLogger errorLogger = new ErrorLogger();
+    
+    //宣告一个instance（ErrorLogger是上面自定义的class）
+
+    void CreatePost(Database db, string postMessage)
+    {
+        try
+        {
+            db.Add(postMessage);
+        }
+        catch (Exception ex)
+        {
+            errorLogger.log(ex.ToString())
+            //调用 errorLogger的method:log
+        }
+    }
+}
+```
+![](https://i.imgur.com/fAE1SFU.png)
+
+
+
+By **abstracting the functionality** that handles the error logging, we no longer violate the single responsibility principle.
 
 Now we have **two classes that each has one responsibility**; 
 1. to create a post 
@@ -109,7 +150,10 @@ Now we have **two classes that each has one responsibility**;
 
 > software entities (classes, modules, functions, etc.) should **be open for extensions, but closed for modification**.
 
-For better OOP?
+- **Use encapsulation to close**:用class保护data，借由method去调用data，防止data被随意modified
+- **Open for extension by inheritance**：通过inheritance，override，让程式的扩展性更强，修改或增添新的method的时候，无需多次修改（提高修改效率）
+
+**For better OOP?**
 
 #### 1. easier to create extended
 
@@ -136,15 +180,18 @@ class Post
     }
 }
 
-class TagPost : Post
+class TagPost extends Post
 {
-    override void CreatePost(Database db, string postMessage)
+    @Override 
+    void CreatePost(Database db, string postMessage)
     {
         db.AddAsTag(postMessage);
     }
 }
 ```
-> The evaluation of the first character ‘#’ will now be handled elsewhere (probably at a higher level) of our software, and the cool thing is, that if we want to change the way a postMessage is evaluated, we can change the code there, without affecting any of these underlying pieces of behavior.
+> The evaluation of the first character ‘#’ will now be handled elsewhere (probably at a higher level) of our software
+> 
+> and the cool thing is, that **if we want to change** the way a postMessage is evaluated, we can change the code there, **without affecting any** of these underlying pieces of behavior.
 > 
 
 #### 2. get rid of being modified(encapsulation)
@@ -160,14 +207,11 @@ Then ϕ(y) should be true for objects y of type S, where S is a subtype of T.
 
 孩子可以被孩子的孩子所替换？
 
-
-
 subtypes? subclass's instance?
 
 ![](https://i.imgur.com/tRppwBB.png)
 
 ```
-lang:C#
 class Post
 {
     void CreatePost(Database db, string postMessage)
@@ -176,15 +220,16 @@ class Post
     }
 }
 
-class TagPost : Post
+class TagPost extends Post
 {
-    override void CreatePost(Database db, string postMessage)
+    @Override
+    void CreatePost(Database db, string postMessage)
     {
         db.AddAsTag(postMessage);
     }
 }
 
-class MentionPost : Post
+class MentionPost extends Post
 {
     void CreateMentionPost(Database db, string postMessage)
     {
@@ -208,9 +253,10 @@ Since
 
 > Let’s correct this
 ```
-class MentionPost : Post
+class MentionPost extends Post
 {
-    override void CreatePost(Database db, string postMessage)
+    @Override
+    void CreatePost(Database db, string postMessage)
     {
         string user = postMessage.parseUser();
 
@@ -230,6 +276,8 @@ class MentionPost : Post
     }
 }
 ```
+
+**base class 具有 subclass 所具有的特性，这样subclass的 instance 也可以是base class的instance（因为其具有所有base class instance的属性）**
 
 After overriding the "CreatePost()" method, the call won't lead to base class' method. We no longer violate the
 Liskov substitution principle.
