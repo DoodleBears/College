@@ -43,16 +43,15 @@ public class Main {
 
         students.stream()
                 .map(Student::getInfo)
-                .collect(groupingBy(Person::getCity,
-                    mapping(Person::getFullName, toList())))
-                .forEach((a, b) -> System.out.println(a + " " + b));
+                .collect(Collectors.groupingBy(Person::getCity, mapping(Person::getFullName, toList())))
+                .forEach((k, v) -> System.out.println(k + " " + v));
 
         System.out.println("------------------------------------\nQ4: 使用 Partitioning 將學生分成 MALE 與 FEMALE兩群組並輸出學生姓名");
 
         students.stream()
                 .map(Student::getInfo)
                 .collect(Collectors.partitioningBy(person -> person.getGender().equals(Person.Gender.MALE)  , mapping(Person::getFullName , toList())))
-                .forEach((a, b) -> System.out.println(a + " " + b));
+                .forEach((k, v) -> System.out.println(k + " " + v));
 
         System.out.println("------------------------------------\nQ5: 請輸出每個考科的平均分數、最高分與最低分");
 
@@ -63,7 +62,6 @@ public class Main {
                         /
                         students.stream()
                                 .count()
-
                 + ", Max:" +
                 students.stream()
                         .mapToInt(student -> student.getScores().getMath())
@@ -142,15 +140,12 @@ public class Main {
 
         System.out.println("------------------------------------\nQ7: 將學生資料 [學號，姓名，三科平均分數] 按照三科平均分數降序(分數高到低) 輸出。");
 
-        List<Student> RankingStudent = students.stream()
+        students.stream()
                 .sorted(Comparator.comparing((Student s) -> s.getScores().getAverage()).reversed())
-                .collect(toList());
+                .collect(toList())
+                .forEach(s -> System.out.printf("[%s, %s, %f]\n",s.getId(), s.getInfo().getFullName(), s.getScores().getAverage() ));
 
-        for ( Student s : RankingStudent){
-            System.out.printf("[%s, %s, %f]\n",s.getId(), s.getInfo().getFullName(), s.getScores().getAverage() );
-        }
 
     }
-
 
 }
